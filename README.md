@@ -1,7 +1,3 @@
-# SHAD-JUR
-
----
-
 ## ディレクトリ構成
 
 ```
@@ -12,6 +8,8 @@
 │   ├── processed      <- XXX
 │   └── raw            <- XXX
 │
+├── tests              <- XXX
+│
 ├── logs               <- XXX
 │
 ├── references         <- XXX
@@ -20,53 +18,41 @@
 │
 ├── setup.py           <- XXX
 │
-└── src                <- 本プロジェクトにおけるソースコード
-    │
-    ├── __init__.py    <- XXX
-    │
-    ├── config         <- XXX
-    │
+└── src
     ├── data           <- XXX
-    │
-    ├── visualize      <- XXX
-    │
-    └── analysis       <- XXX
+    └── visualize      <- XXX
 ```
 
 ---
 
 ## 仮想環境再現方法
 
-
-## Initial setup
-* To create the conda env (e.g. initial creation of the env), run:
+### 仮想環境の新規作成
+* ルートディレクトリから下記コマンドをターミナルに入力し、仮想環境をセットアップ
   
   ```conda env create -f environment.yml```
 
-* To install the custom packages in `src` run:
+* 同様に下記コマンドをターミナルに入力し、`src`内のカスタムパッケージをインストール
 
    ```pip install -e .```
 
-This enables you to `import src` or `import src.xx` in any script or notebook.  
-The package is dynamically linked to the `src` folder so the *install* command only needs to be run once.
+※ 上記コマンドにより、どのスクリプト・ノートブックからも`import src`あるいは`import src.xxx`が可能となる
 
-## Updating during development
+### 仮想環境の更新
 
-* To update the conda env (e.g. when environment.yml was updated after merging someone else's branch), run:
-  
-  ```conda env update -f environment.yml```
+* 同様に下記コマンドをターミナルにて入力し、 仮想環境をアップデート 
 
-* To add a package in environment.yml, manually edit the yml file. Do NOT use conda env export command, as the result will include OS-dependent low level packages. conda env export --from-history can be useful as a reference.
+```conda env update -f environment.yml```
 
-
+※ 新しいパッケージを追加する場合は、`environment.yml`をマニュアルにて更新することを推奨。`conda env export --from-history`を参照
 
 ---
 
-# Running the pipeline
+## パイプラインの実行
 
-## Data preparation
+### アウトプットの取得
 
-Run the following script from the root directory:
+* 下記コマンドをルートディレクトリにて実行尾
 
 ```
 bash run_all.sh
