@@ -5,14 +5,15 @@
 │
 ├── data
 │   ├── interim        <- XXX
-│   ├── processed      <- XXX
 │   └── raw            <- XXX
 │
-├── tests              <- XXX
+├── deliverables       <- XXX
 │
 ├── logs               <- XXX
 │
 ├── references         <- XXX
+│
+├── tests              <- XXX
 │
 ├── environment.yml    <- XXX
 │
