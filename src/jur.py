@@ -12,33 +12,22 @@ from matplotlib.cbook import boxplot_stats
 
 
 class JUR:
-    def __init__(self, data_path: str = None, data_name: str = None) -> None:
+    def __init__(self, data_path: str = None) -> None:
         """JURクラス初期化
 
         Args:
-            data_path (str, optional): JURデータが格納されているディレクトリ名
-            data_name (str, optional): JURデータのファイル名
+            data_path (str, optional): JURデータが格納されているパス名
         """
         self.data_path = data_path
-        self.data_name = os.path.splitext(data_name)[0]
 
     def load_jur_db(self) -> pd.DataFrame:
         """JURデータの読み込み
-        xlsxファイルをデフォルトで読み込む
-        もしxlsxファイルがない場合、エラーを返す
 
         Returns:
             pd.DataFrame: JUR Student Surveyデータ
         """
-        xlsx_db = os.path.join(self.data_path, self.data_name + ".xlsx")
-
-        if os.path.exists(xlsx_db):
-            logging.info(f"JUR SSデータ読み込み: {xlsx_db}")
-            jur_db = pd.read_excel(xlsx_db)
-
-        else:
-            logging.error("ERROR: JUR SSデータが存在するか確認してください")
-            return None
+        logging.info(f"JUR SSデータ読み込み: {self.data_path}")
+        jur_db = pd.read_excel(self.data_path)
 
         return jur_db
 
@@ -194,7 +183,7 @@ class JUR:
         plot_to_show.set(xlabel=None)
         plot_to_show.set(ylabel=None)
 
-        plt.savefig(f"../deliverables/{file_name}.pdf")
+        plt.savefig(f"deliverables/{file_name}.pdf")
 
     def create_boxplot_values(
         self, jur_db: pd.DataFrame, file_name: str
@@ -227,19 +216,19 @@ class JUR:
                 jur_db_filtered = jur_db.query("questions == @q").query(
                     "institutional_type_size == @i"
                 )
-                boxplot_stats = boxplot_stats(jur_db_filtered["rating"])[0]
+                bp_values = boxplot_stats(jur_db_filtered["rating"])[0]
 
-                output_dict["ヒゲの最小値"].append(boxplot_stats["whislo"])
-                output_dict["箱の最小値"].append(boxplot_stats["q1"])
-                output_dict["中央値"].append(boxplot_stats["med"])
-                output_dict["箱の最大値"].append(boxplot_stats["q3"])
-                output_dict["ヒゲの最大値"].append(boxplot_stats["whishi"])
-                output_dict["平均値"].append(boxplot_stats["mean"])
+                output_dict["ヒゲの最小値"].append(bp_values["whislo"])
+                output_dict["箱の最小値"].append(bp_values["q1"])
+                output_dict["中央値"].append(bp_values["med"])
+                output_dict["箱の最大値"].append(bp_values["q3"])
+                output_dict["ヒゲの最大値"].append(bp_values["whishi"])
+                output_dict["平均値"].append(bp_values["mean"])
 
                 output_tbl = pd.DataFrame(output_dict)
 
         output_tbl.to_csv(
-            f"../deliverables/{file_name}.csv", index=False, encoding="utf-8_sig"
+            f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig"
         )
 
     def summarize_score_question(
@@ -248,6 +237,7 @@ class JUR:
         questions_to_map: dict,
         calc_mode: str,
         file_name: str,
+        only_effective_survey: bool = False,
     ) -> pd.DataFrame:
         """各質問の回答スコアの集約値を算出
 
@@ -256,12 +246,16 @@ class JUR:
             questions_to_map (dict): 図表用の質問和英対応辞書
             calc_mode (str): 各大学の回答集約方法（meanかmedianを選択可能）
             file_name (str): データフレーム保存時のファイル名
+            only_effective_survey (bool, optional): 有効回答数に到達した大学のみを対象とするか否か
 
         Returns:
             pd.DataFrame: 各質問におけるスコアの平均値/中央値のデータフレーム
         """
 
         cols_to_select = ["response_id"] + list(questions_to_map.keys())
+
+        if only_effective_survey:
+            jur_db = jur_db.query("effective_survey_size >= 50")
 
         res = (
             jur_db.loc[:, cols_to_select]
@@ -285,6 +279,4 @@ class JUR:
                 .rename(columns={"questions": "質問項目", "rating": "中央値"})
             )
 
-        res.to_csv(
-            f"../deliverables/{file_name}.csv", index=False, encoding="utf-8_sig"
-        )
+        res.to_csv(f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig")
