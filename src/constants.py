@@ -1,8 +1,7 @@
 import numpy as np
 
-
-# 読み込みデータ パス
-DATA_PATH = "../data/raw/SS元データ_完全版(1万件)_0228_imputed.xlsx"
+# JUR SSデータ格納場所
+DATA_PATH = "data/raw/SS元データ_完全版(1万件)_0228_imputed.xlsx"
 
 # 列名の対応
 COLS_TO_MAP = {
