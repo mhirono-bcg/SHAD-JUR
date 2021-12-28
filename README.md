@@ -1,61 +1,77 @@
-## ディレクトリ構成
+## 1. ディレクトリ構成（各種設定ファイルは割愛）
 
 ```
-├── README.md          <- XXX
-│
 ├── data
-│   ├── interim        <- XXX
-│   └── raw            <- XXX
+│   └── raw            <- JUR Student Surveyデータの格納場所
 │
-├── deliverables       <- XXX
+├── deliverables       <- アウトプットである各種図表の格納場所
 │
-├── logs               <- XXX
+├── logs               <- スクリプト実行時のログ格納場所
 │
-├── references         <- XXX
+├── references         <- お見積りや各種提供資料の格納場所
 │
-├── tests              <- XXX
+├── src
+│   ├── constants.py   <- パスやカラム名などの定数を記載
+│   ├── core.py        <- アプリケーションのエントリポイント
+│   └── jur.py         <- JURクラスを定義し、クリーニングや図表作成をメソッドとして記載
 │
-├── environment.yml    <- XXX
+├── tests
+│   ├── data           <- テスト用データの格納場所
+│   └── test_core.py   <- JURクラス内の各メソッドのテストケース
 │
-├── setup.py           <- XXX
-│
-└── src
-    ├── data           <- XXX
-    └── visualize      <- XXX
+├── environment.yml    <- 仮想環境のスペック
+├── README.md          <- 本アプリケーションのフォルダ構成や利用方法を記載
+├── main.py            <- 動作確認用のスクリプト
+└── setup.py           <- スクリプトインターフェースへの登録を実行
+
 ```
 
 ---
 
-## 仮想環境再現方法
+## 2. セットアップ
 
-### 仮想環境の新規作成
-* ルートディレクトリから下記コマンドをターミナルに入力し、仮想環境をセットアップ
+### 2-1. ANACONDAのインストール
+
+ローカルマシンにANACONDAがインストールされていない場合は、[公式HP](https://www.anaconda.com/products/individual)からANACONDAをインストールしてください
+
+参考：[Windows版Anacondaのインストール](https://www.python.jp/install/anaconda/windows/install.html)
+
+### 2-2. 統合開発環境 -IDE のインストール（オプション）
+
+アプリケーションの運用・保守が容易となるため、必要に応じてIDEのインストールを推奨します
+
+* [Pycharm](https://www.jetbrains.com/pycharm/)
+* [VS Code](https://code.visualstudio.com/)
+
+### 2-3. 仮想環境の作成
+ルートディレクトリから下記コマンドをターミナルに入力し、仮想環境をセットアップ
   
   ```conda env create -f environment.yml```
 
-* 同様に下記コマンドをターミナルに入力し、`src`内のカスタムパッケージをインストール
+### 2-4. 仮想環境のアクティブ化
+同様にして下記コマンドをターミナルに入力し、仮想環境をアクティブ化
 
-   ```pip install -e .```
+```conda activat SHAD-JUR```
 
-※ 上記コマンドにより、どのスクリプト・ノートブックからも`import src`あるいは`import src.xxx`が可能となる
+### 2-5. Pythonコマンドの登録
+同様にして下記コマンドをターミナルに入力し、`generate_jur_ss_outputs`コマンドを実行できるようにします
 
-### 仮想環境の更新
-
-* 同様に下記コマンドをターミナルにて入力し、 仮想環境をアップデート 
-
-```conda env update -f environment.yml```
-
-※ 新しいパッケージを追加する場合は、`environment.yml`をマニュアルにて更新することを推奨。`conda env export --from-history`を参照
+```pip install -e .```
 
 ---
 
-## パイプラインの実行
+## 3. 実行
 
-### アウトプットの取得
+### 3-1. データの確認
+`../SHAD-JUR/data/raw`に対象となるJUR Student Surveyデータが格納されているか確認する
 
-* 下記コマンドをルートディレクトリにて実行尾
+### 3-2. パスの確認
+`../SHAD-JUR/src/constants.py`のパスが正しく3-1.のデータを指しているか確認する
 
-```
-bash run_all.sh
-```
-＿＿＿＿＿＿＿＿＿＿＿
+### 3-3. コマンドラインの実行
+ルートディレクトリから下記コマンドをターミナルに入力し、各種アウトプットを作成
+
+```generate_jur_ss_outputs```
+
+### 3-4. アウトプットの確認
+`../SHAD-JUR/deliverables`に最新のアウトプットが格納されているか確認する
