@@ -37,7 +37,6 @@ class JUR:
         cols_to_map: dict,
         capacity_bins: list,
         capacity_labels: list,
-        attr_to_remove: list,
     ) -> pd.DataFrame:
         """JURデータのクリーニング
 
@@ -46,7 +45,6 @@ class JUR:
             cols_to_map (dict): 旧カラム名と新カラム名の辞書
             capacity_bins (list): 大学定員数の境界値のリスト
             capacity_labels (list): 大学定員数に基づく規模のラベルリスト
-            attr_to_remove (list): 除外する学生の属性リスト
 
         Returns:
             pd.DataFrame: クリーニング済みのJUR Student Surveyデータ
@@ -57,12 +55,13 @@ class JUR:
             jur_db.rename(columns=cols_to_map)
             .loc[:, cols_to_map.values()]
             # 全て同じ回答の場合、分散がゼロである性質を利用
-            .assign(
-                flat_liner_flag=lambda df: df.loc[
-                    :, df.columns.str.startswith("q_")
-                ].apply(np.var, axis=1)
-                == 0
-            )
+            # 柴田さんリクエストより、不要な前処理をコメントアウト
+            # .assign(
+            #     flat_liner_flag=lambda df: df.loc[
+            #         :, df.columns.str.startswith("q_")
+            #     ].apply(np.var, axis=1)
+            #     == 0
+            # )
             .assign(
                 institutional_size=lambda df: pd.cut(
                     df["institutional_capacity"],
@@ -84,8 +83,8 @@ class JUR:
                     ),
                 )
             )
-            .query("student_title in @attr_to_remove")
-            .query("flat_liner_flag == False")
+            # .query("student_title in @attr_to_remove")
+            # .query("flat_liner_flag == False")
         )
 
         return jur_db_cleaned
