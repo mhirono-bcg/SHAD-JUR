@@ -3,6 +3,9 @@ import numpy as np
 # JUR SSデータ格納場所
 DATA_PATH = "data/raw/SS元データ_完全版(1万件)_0228_imputed.xlsx"
 
+# test用データ格納場所
+TEST_PATH = "tests/data/test_data.xlsx"
+
 # 列名の対応
 COLS_TO_MAP = {
     "Panel": "panel_name",
@@ -50,13 +53,13 @@ COLS_TO_MAP = {
 }
 
 # 除外する回答者属性
-ATTR_TO_REMOVE = {
-    "Bachelor's degree student (e.g. BA or BS)",
-    "Master's degree student (excluding MBA)",
-    "Exchange student (e.g. study abroad or summer school)",
-    "MBA student",
-    "Associate degree student (e.g. AA or AS)",
-}
+# ATTR_TO_REMOVE = {
+#     "Bachelor's degree student (e.g. BA or BS)",
+#     "Master's degree student (excluding MBA)",
+#     "Exchange student (e.g. study abroad or summer school)",
+#     "MBA student",
+#     "Associate degree student (e.g. AA or AS)",
+# }
 
 # 定員の分割用パラメータ
 CAPACITY_BIN = [0, 999, 1999, np.Inf]
