@@ -1,7 +1,6 @@
 import click
 from src.jur import JUR
 from src.constants import (
-    ATTR_TO_REMOVE,
     CAPACITY_BIN,
     CAPACITY_LABEL,
     COLS_TO_MAP,
@@ -24,7 +23,6 @@ def cli():
         cols_to_map=COLS_TO_MAP,
         capacity_bins=CAPACITY_BIN,
         capacity_labels=CAPACITY_LABEL,
-        attr_to_remove=ATTR_TO_REMOVE,
     )
 
     # クリーニング済みのJUR SSデータベースの作図用に加工

@@ -1,5 +1,7 @@
 import numpy as np
 
+# ==========
+
 # JUR SSデータ格納場所
 DATA_PATH = "data/raw/SS元データ_完全版(1万件)_0228_imputed.xlsx"
 

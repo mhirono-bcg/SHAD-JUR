@@ -1,5 +1,6 @@
+# modules
+
 import logging
-import os
 
 import japanize_matplotlib
 import matplotlib
@@ -10,7 +11,22 @@ import seaborn as sns
 
 from matplotlib.cbook import boxplot_stats
 
+# logging config
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
+formatter = logging.Formatter("%(levelname)s:%(asctime)s:%(name)s:%(message)s")
+
+file_handler = logging.FileHandler("logs/jur.log", encoding="utf-8")
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+# class
 class JUR:
     def __init__(self, data_path: str = None) -> None:
         """JURクラス初期化
@@ -26,9 +42,10 @@ class JUR:
         Returns:
             pd.DataFrame: JUR Student Surveyデータ
         """
-        logging.info(f"JUR SSデータ読み込み: {self.data_path}")
+        logger.info(f"Load JUR Student Survey data: {self.data_path}")
         jur_db = pd.read_excel(self.data_path)
 
+        logger.info(f"The shape of the loaded data: {jur_db.shape}")
         return jur_db
 
     def clean_jur_db(
@@ -49,6 +66,8 @@ class JUR:
         Returns:
             pd.DataFrame: クリーニング済みのJUR Student Surveyデータ
         """
+
+        logger.info(f"Start cleaning JUR Student Survey data")
 
         # Flat-liner算出ロジックは、全て同じ回答の場合、分散がゼロとなる性質を利用
         jur_db_cleaned = (
@@ -87,6 +106,10 @@ class JUR:
             # .query("flat_liner_flag == False")
         )
 
+        logger.info(
+            f"New columns of the cleaned data: {set(jur_db_cleaned.columns) - set(cols_to_map.values())}"
+        )
+
         return jur_db_cleaned
 
     def update_jur_db_to_plot(
@@ -104,6 +127,10 @@ class JUR:
             calc_mode (str): 各大学の回答集約方法（meanかmedianを選択可能）
             only_effective_survey (bool, optional): 有効回答数に到達した大学のみを対象とするか否か
         """
+
+        logger.info(
+            f"Start processing JUR Student Survey data for plotting: calc_mode = {calc_mode} & only_effective_survey = {only_effective_survey}"
+        )
 
         cols_to_select = [
             "response_id",
@@ -182,6 +209,7 @@ class JUR:
         plot_to_show.set(xlabel=None)
         plot_to_show.set(ylabel=None)
 
+        logger.info(f"Save the boxplot as {file_name}")
         plt.savefig(f"deliverables/{file_name}.pdf")
 
     def create_boxplot_values(
@@ -226,6 +254,7 @@ class JUR:
 
                 output_tbl = pd.DataFrame(output_dict)
 
+        logger.info(f"Save the boxplot values as {file_name}")
         output_tbl.to_csv(
             f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig"
         )
@@ -278,4 +307,5 @@ class JUR:
                 .rename(columns={"questions": "質問項目", "rating": "中央値"})
             )
 
+        logger.info(f"Save the response summary as {file_name}")
         res.to_csv(f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig")
