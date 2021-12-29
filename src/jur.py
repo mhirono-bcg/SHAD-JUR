@@ -1,6 +1,7 @@
 # modules
 
 import logging
+import sys
 
 import japanize_matplotlib
 import matplotlib
@@ -13,7 +14,7 @@ from matplotlib.cbook import boxplot_stats
 
 # logging config
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter("%(levelname)s:%(asctime)s:%(name)s:%(message)s")
 
@@ -42,10 +43,14 @@ class JUR:
         Returns:
             pd.DataFrame: JUR Student Surveyデータ
         """
-        logger.info(f"Load JUR Student Survey data: {self.data_path}")
+        logger.info(f"JUR Student Surveyデータの読み込み開始: {self.data_path}")
         jur_db = pd.read_excel(self.data_path)
 
-        logger.info(f"The shape of the loaded data: {jur_db.shape}")
+        # 欠損値が含まれるカラム名をログに送出
+        columns_with_missing = list(jur_db.loc[:, -jur_db.notnull().all()].columns)
+        logger.warning(f"{columns_with_missing}に欠損値が含まれている点に留意")
+
+        logger.info(f"JUR Student Surveyデータの読み込みが完了: (行数, 列数) = {jur_db.shape}")
         return jur_db
 
     def clean_jur_db(
@@ -67,7 +72,17 @@ class JUR:
             pd.DataFrame: クリーニング済みのJUR Student Surveyデータ
         """
 
-        logger.info(f"Start cleaning JUR Student Survey data")
+        # カラム名が一致しているかテスト
+        actual_cols_name = set(jur_db.columns)
+        expected_cols_name = set(cols_to_map.keys())
+
+        if actual_cols_name != expected_cols_name:
+            logger.error(
+                "カラム名の不一致: '../data/raw'のデータのカラム名と'../src/constants.py'のカラム名を要確認"
+            )
+            sys.exit()
+
+        logger.info("JUR Student Surveyデータのクリーニング開始")
 
         # Flat-liner算出ロジックは、全て同じ回答の場合、分散がゼロとなる性質を利用
         jur_db_cleaned = (
@@ -107,7 +122,7 @@ class JUR:
         )
 
         logger.info(
-            f"New columns of the cleaned data: {set(jur_db_cleaned.columns) - set(cols_to_map.values())}"
+            f"JUR Student Surveyデータのクリーニングが完了: (行数, 列数) = {jur_db_cleaned.shape}"
         )
 
         return jur_db_cleaned
@@ -129,7 +144,7 @@ class JUR:
         """
 
         logger.info(
-            f"Start processing JUR Student Survey data for plotting: calc_mode = {calc_mode} & only_effective_survey = {only_effective_survey}"
+            f"JUR Student Surveyデータの前処理開始: 集計手法 = {calc_mode} & 有効回答のみ抽出 = {only_effective_survey}"
         )
 
         cols_to_select = [
@@ -185,6 +200,16 @@ class JUR:
                 )
             )
 
+        # 重複データが存在する場合はエラーを送出
+        if db_to_plot.duplicated().any():
+            logger.error("重複データが存在するため、'../src/jur.py'の130-208行目のロジックを要修正")
+            sys.exit()
+
+        # ratingが0~10のスケール外の場合はエラーを送出
+        if db_to_plot.rating.le(0).all() | db_to_plot.rating.ge(10).all():
+            logger.error("回答スケールの0-10を逸脱した値が存在するため、'../data/raw'のデータを要確認")
+            sys.exit()
+
         return db_to_plot
 
     def create_boxplot(self, jur_db: pd.DataFrame, file_name: str):
@@ -209,7 +234,7 @@ class JUR:
         plot_to_show.set(xlabel=None)
         plot_to_show.set(ylabel=None)
 
-        logger.info(f"Save the boxplot as {file_name}")
+        logger.info(f"箱ひげ図を {file_name}にて保存")
         plt.savefig(f"deliverables/{file_name}.pdf")
 
     def create_boxplot_values(
@@ -254,7 +279,7 @@ class JUR:
 
                 output_tbl = pd.DataFrame(output_dict)
 
-        logger.info(f"Save the boxplot values as {file_name}")
+        logger.info(f"箱ひげ図の詳細統計量を{file_name}にて保存")
         output_tbl.to_csv(
             f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig"
         )
@@ -299,13 +324,23 @@ class JUR:
                 .rename(columns={"questions": "質問項目", "rating": "中央値"})
             )
 
+            # ratingが0~10のスケール外の場合はエラーを送出
+            if res["中央値"].le(0).all() | res["中央値"].ge(10).all():
+                logger.error("回答スケールの0-10を逸脱した値が存在するため、'../data/raw'のデータを要確認")
+                sys.exit()
+
         elif calc_mode == "mean":
             res = (
                 res.groupby("questions")["rating"]
                 .mean()
                 .reset_index()
-                .rename(columns={"questions": "質問項目", "rating": "中央値"})
+                .rename(columns={"questions": "質問項目", "rating": "平均値"})
             )
 
-        logger.info(f"Save the response summary as {file_name}")
+            # ratingが0~10のスケール外の場合はエラーを送出
+            if res["平均値"].le(0).all() | res["平均値"].ge(10).all():
+                logger.error("回答スケールの0-10を逸脱した値が存在するため、'../data/raw'のデータを要確認")
+                sys.exit()
+
+        logger.info(f"回答者の要約スコアを{file_name}にて保存")
         res.to_csv(f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig")
