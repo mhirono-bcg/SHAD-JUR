@@ -5,9 +5,6 @@ import numpy as np
 # JUR SSデータ格納場所
 DATA_PATH = "data/raw/SS元データ_完全版(1万件)_0228_imputed.xlsx"
 
-# test用データ格納場所
-TEST_PATH = "tests/data/test_data.xlsx"
-
 # 列名の対応
 COLS_TO_MAP = {
     "Panel": "panel_name",

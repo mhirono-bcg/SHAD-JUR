@@ -47,7 +47,7 @@
 ### 2-4. 仮想環境のアクティブ化
 同様にして下記コマンドをターミナルに入力し、仮想環境をアクティブ化
 
-```conda activat SHAD-JUR```
+```conda activate SHAD-JUR```
 
 ### 2-5. Pythonコマンドの登録
 同様にして下記コマンドをターミナルに入力し、`generate_jur_ss_outputs`コマンドを実行できるようにします
