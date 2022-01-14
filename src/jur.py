@@ -222,7 +222,7 @@ class JUR:
 
         matplotlib.style.use("tableau-colorblind10")
         plot_to_show = sns.FacetGrid(
-            jur_db, col="questions", size=5, aspect=1.5, col_wrap=4
+            jur_db, col="questions", height=5, aspect=1.5, col_wrap=4
         )
         plot_to_show.map(
             sns.boxplot, "rating", "institutional_type_size", showfliers=False
