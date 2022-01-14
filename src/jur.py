@@ -344,3 +344,106 @@ class JUR:
 
         logger.info(f"回答者の要約スコアを{file_name}にて保存")
         res.to_csv(f"deliverables/{file_name}.csv", index=False, encoding="utf-8_sig")
+
+    def display_SS_result_for_university(
+        self, jur_db: pd.DataFrame, questions_to_map: dict, file_name: str
+    ) -> pd.DataFrame:
+        """各大学に返却する帯グラフの元データを算出
+
+        Args:
+            jur_db (pd.DataFrame): クリーニング済みJUR Student Surveyデータ
+            questions_to_map (dict): 図表用の質問和英対応辞書
+            file_name (str): データフレーム保存時のファイル名
+
+        Returns:
+            pd.DataFrame: 各設問における中央値/平均値、および回答数・回答分布状況を大学ごとにまとめたデータフレーム
+        """
+
+        cols_to_fetch = ["DJM_code", "university_name"] + list(questions_to_map.keys())
+
+        # 元データの作成
+        res = (
+            jur_db.loc[:, cols_to_fetch]
+            .rename(columns=questions_to_map)
+            .melt(
+                id_vars=["DJM_code", "university_name"],
+                var_name="questions",
+                value_name="rating",
+            )
+            .assign(count=lambda x: 1)
+            .assign(
+                n_survey=lambda x: x.groupby(
+                    ["DJM_code", "university_name", "questions"]
+                )["count"].transform(sum)
+            )
+            .assign(percent=lambda x: round(x["count"] / x["n_survey"] * 100))
+            .assign(
+                median=lambda x: x.groupby(
+                    ["DJM_code", "university_name", "questions"]
+                )["rating"].transform(lambda x: round(np.median(x), 1))
+            )
+            .assign(
+                mean=lambda x: x.groupby(["DJM_code", "university_name", "questions"])[
+                    "rating"
+                ].transform(lambda x: round(np.mean(x), 1))
+            )
+            .groupby(
+                [
+                    "DJM_code",
+                    "university_name",
+                    "n_survey",
+                    "median",
+                    "mean",
+                    "questions",
+                    "rating",
+                ]
+            )["percent"]
+            .sum()
+            .reset_index()
+            .pivot(
+                index=[
+                    "DJM_code",
+                    "university_name",
+                    "n_survey",
+                    "median",
+                    "mean",
+                    "questions",
+                ],
+                columns="rating",
+                values="percent",
+            )
+            .reset_index()
+            .fillna(0)
+            # 各大学における質問項目が昇順に並ぶように調整
+            .groupby("DJM_code")
+            .apply(lambda x: x.sort_values("questions"))
+            .reset_index(drop=True)
+            .rename(
+                columns={
+                    "DJM_code": "DJM",
+                    "university_name": "大学名",
+                    "n_survey": "回答数",
+                    "median": "中央値",
+                    "mean": "平均値",
+                    "questions": "質問項目",
+                }
+            )
+        )
+
+        logger.info(f"大学返却用のSS調査結果を{res['大学名'].nunique()}校作成")
+
+        # タブを分けて保存するため、中央値・平均値それぞれのデータを作成
+        res_median = res.drop("平均値", axis=1)
+        res_mean = res.drop("中央値", axis=1)
+
+        for university in set(res["大学名"]):
+            with pd.ExcelWriter(
+                f"deliverables/{file_name}({university}).xlsx"
+            ) as writer:
+                res_median.query("大学名 == @university").to_excel(
+                    writer, sheet_name="中央値", index=False
+                )
+                res_mean.query("大学名 == @university").to_excel(
+                    writer, sheet_name="平均値", index=False
+                )
+                logger.info(f"{university}用返却ファイルを作成")
