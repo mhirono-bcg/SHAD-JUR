@@ -107,3 +107,8 @@ def cli():
         only_effective_survey=True,
         file_name="アウトプット10_回答者全体_平均値_有効回答到達大学のみ",
     )
+
+    # output 11
+    jur.display_SS_result_for_university(
+        cleaned_db, questions_to_map=QUESTIONS_TO_MAP, file_name="アウトプット11_SS調査結果"
+    )
