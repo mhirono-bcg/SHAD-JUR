@@ -370,13 +370,6 @@ class JUR:
                 var_name="questions",
                 value_name="rating",
             )
-            .assign(count=lambda x: 1)
-            .assign(
-                n_survey=lambda x: x.groupby(
-                    ["DJM_code", "university_name", "questions"]
-                )["count"].transform(sum)
-            )
-            .assign(percent=lambda x: round(x["count"] / x["n_survey"] * 100))
             .assign(
                 median=lambda x: x.groupby(
                     ["DJM_code", "university_name", "questions"]
@@ -387,19 +380,18 @@ class JUR:
                     "rating"
                 ].transform(lambda x: round(np.mean(x), 1))
             )
+            .assign(count=lambda x: 1)
             .groupby(
-                [
-                    "DJM_code",
-                    "university_name",
-                    "n_survey",
-                    "median",
-                    "mean",
-                    "questions",
-                    "rating",
-                ]
-            )["percent"]
+                ["DJM_code", "university_name", "questions", "rating", "median", "mean"]
+            )["count"]
             .sum()
             .reset_index()
+            .assign(
+                n_survey=lambda x: x.groupby(
+                    ["DJM_code", "university_name", "questions", "median", "mean"]
+                )["count"].transform(sum)
+            )
+            .assign(percent=lambda x: x["count"] / x["n_survey"] * 100)
             .pivot(
                 index=[
                     "DJM_code",
@@ -430,20 +422,13 @@ class JUR:
             )
         )
 
-        logger.info(f"大学返却用のSS調査結果を{res['大学名'].nunique()}校作成")
+        logger.info(f"大学返却用のSS調査結果を作成開始")
 
         # タブを分けて保存するため、中央値・平均値それぞれのデータを作成
         res_median = res.drop("平均値", axis=1)
         res_mean = res.drop("中央値", axis=1)
 
-        for university in set(res["大学名"]):
-            with pd.ExcelWriter(
-                f"deliverables/{file_name}({university}).xlsx"
-            ) as writer:
-                res_median.query("大学名 == @university").to_excel(
-                    writer, sheet_name="中央値", index=False
-                )
-                res_mean.query("大学名 == @university").to_excel(
-                    writer, sheet_name="平均値", index=False
-                )
-                logger.info(f"{university}用返却ファイルを作成")
+        with pd.ExcelWriter(f"deliverables/{file_name}.xlsx") as writer:
+            res_median.to_excel(writer, sheet_name="中央値", index=False)
+            res_mean.to_excel(writer, sheet_name="平均値", index=False)
+            logger.info(f"大学返却用のSS調査結果を作成終了")
