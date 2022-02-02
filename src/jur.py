@@ -221,8 +221,17 @@ class JUR:
         """
 
         matplotlib.style.use("tableau-colorblind10")
+
+        # 1.3 times font size scaling
+        sns.set_context("talk")
+
         plot_to_show = sns.FacetGrid(
-            jur_db, col="questions", height=5, aspect=1.5, col_wrap=4
+            jur_db,
+            col="questions",
+            height=5,
+            aspect=1.5,
+            col_wrap=4,
+            margin_titles=True,
         )
         plot_to_show.map(
             sns.boxplot, "rating", "institutional_type_size", showfliers=False
@@ -233,6 +242,15 @@ class JUR:
 
         plot_to_show.set(xlabel=None)
         plot_to_show.set(ylabel=None)
+
+        # change the sub-plot title
+        plot_to_show.set_titles("{col_name}")
+
+        # change the label ticks
+        plot_to_show.set(xlim=(0.0, 10.0), xticks=[0.0, 2.5, 5.0, 7.5, 10.0])
+
+        # optimize
+        plot_to_show.tight_layout()
 
         logger.info(f"箱ひげ図を {file_name}にて保存")
         plt.savefig(f"deliverables/{file_name}.pdf")
