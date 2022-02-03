@@ -222,6 +222,13 @@ class JUR:
 
         matplotlib.style.use("tableau-colorblind10")
 
+        # extract the institutional type for reordering
+        public = jur_db["institutional_type_size"].unique()[0]
+        national = jur_db["institutional_type_size"].unique()[1]
+        private_middle = jur_db["institutional_type_size"].unique()[2]
+        private_large = jur_db["institutional_type_size"].unique()[3]
+        private_small = jur_db["institutional_type_size"].unique()[4]
+
         # 1.3 times font size scaling
         sns.set_context("talk")
 
@@ -234,7 +241,11 @@ class JUR:
             margin_titles=True,
         )
         plot_to_show.map(
-            sns.boxplot, "rating", "institutional_type_size", showfliers=False
+            sns.boxplot,
+            "rating",
+            "institutional_type_size",
+            showfliers=False,
+            order=[private_small, private_middle, private_large, public, national],
         )
 
         for index in plot_to_show.axes:
